@@ -9,7 +9,9 @@ import com.model.Animales;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.FormParam;
@@ -42,6 +44,8 @@ public class AnimalesFacadeREST extends AbstractFacade<Animales> {
     public void create(Animales entity) {
         super.create(entity);
     }
+    
+    
 
     @PUT
     @Path("{id}")
@@ -69,56 +73,79 @@ public class AnimalesFacadeREST extends AbstractFacade<Animales> {
     public List<Animales> findAll() {
         return super.findAll();
     }
-   
-    @POST
-    @Path ("consulta")
-    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON})
-    public List<Animales> consulta(@FormParam("usuario")String valor,@FormParam("contraseña")String valor2){
-        List<Animales> retorno=null;
-        if (valor.equals("Diegoch1992")&&valor2.equals("diego")){
-            retorno=super.findAll();
-        }
-        
-        return retorno;
-    }
-    
-    @GET
-    @Path("xml")
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public List<Animales> findAllxml() {
-        return super.findAll();
-    }
-    
+
     @GET
     @Path("{from}/{to}")
-    @Produces({MediaType.APPLICATION_XML,MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public List<Animales> findRange(@PathParam("from") Integer from, @PathParam("to") Integer to) {
         return super.findRange(new int[]{from, to});
     }
 
     @GET
     @Path("count")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String countREST() {
+        return String.valueOf(super.count());
+    }
+    
+    @POST
+    @Path("consultarValidos")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON})
-    public String countREST(@FormParam("salir")int valor) {
-        String retorno = "";
-        String retorno2="";
-        if(valor==1){
-            retorno2=String.valueOf(super.count());
-            return retorno2;
-        }
+    public List<Animales> consultarValidos(@FormParam("eliminado") int eliminado) {
+        List<Animales> retorno=obtenerPorEliminado(eliminado);
         return retorno;
     }
     
-////    @GET
-////    @Path("count")
-////    @Produces(MediaType.TEXT_PLAIN)
-////    public String countREST() {
-////        return String.valueOf(super.count());
-////    }
+    @POST
+    @Path("consultarExtinto")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON})
+    public List<Animales> consultarExtintos(@FormParam("extincion") int extincion) {
+        List<Animales> retorno=obtenerPorEliminado(extincion);
+        return retorno;
+    }
+    
+    @POST
+    @Path("login")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON})
+    public List<Animales> login(@FormParam("usuario") String NUsuario,@FormParam("contraseña") String contra,@FormParam("extincion") int extincion) {
+        List<Animales> retorno=null;
+        if (NUsuario.equals("Diegoch1992")&&contra.equals("diego")){
+            retorno=obtenerPorEliminado(extincion);    
+        }    
+        return retorno;
+    }
+
 
     @Override
     protected EntityManager getEntityManager() {
         return em;
     }
+    
+    List<Animales>obtenerPorEliminado(int valor){
+        TypedQuery<Animales> qry;
+        qry=getEntityManager().createQuery("SELECT a FROM Animales a WHERE a.eliminado = :eliminado", Animales.class);
+        qry.setParameter("eliminado", valor);
+        try{
+            return qry.getResultList();
+        }catch(NoResultException e){
+            return null;
+        }
+        
+    }
+    
+    List<Animales>obtenerExtincion(int valor){
+        TypedQuery<Animales> qry;
+        qry=getEntityManager().createQuery("\"SELECT a FROM Animales a WHERE a.extincion = :extincion", Animales.class);
+        qry.setParameter("extincion", valor);
+        try{
+            return qry.getResultList();
+        }catch(NoResultException e){
+            return null;
+        }
+    }
+    
+    
+    
+    
     
 }
