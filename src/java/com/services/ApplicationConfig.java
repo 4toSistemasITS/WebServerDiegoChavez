@@ -30,7 +30,12 @@ public class ApplicationConfig extends Application {
      */
     private void addRestResourceClasses(Set<Class<?>> resources) {
         resources.add(com.services.AnimalesFacadeREST.class);
+        resources.add(com.services.EmpleadoFacadeREST.class);
+        resources.add(com.services.EmpresaFacadeREST.class);
+        resources.add(com.services.NewCrossOriginResourceSharingFilter.class);
         resources.add(com.services.PersonaFacadeREST.class);
+        resources.add(com.services.UsuarioFacadeREST.class);
+        resources.add(com.services.VehiculoFacadeREST.class);
     }
     
 }

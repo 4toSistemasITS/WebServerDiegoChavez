@@ -135,7 +135,7 @@ public class AnimalesFacadeREST extends AbstractFacade<Animales> {
     
     List<Animales>obtenerExtincion(int valor){
         TypedQuery<Animales> qry;
-        qry=getEntityManager().createQuery("\"SELECT a FROM Animales a WHERE a.extincion = :extincion", Animales.class);
+        qry=getEntityManager().createQuery("SELECT a FROM Animales a WHERE a.extincion = :extincion", Animales.class);
         qry.setParameter("extincion", valor);
         try{
             return qry.getResultList();

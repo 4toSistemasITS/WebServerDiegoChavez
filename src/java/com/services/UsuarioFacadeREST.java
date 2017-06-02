@@ -114,7 +114,70 @@ public class UsuarioFacadeREST extends AbstractFacade<Usuario> {
         return mensaje;
     }
     
-
+    @POST
+    @Path("editar")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON})
+    public String editar(@FormParam ("idUsuario")int idUsuario,@FormParam("usuario")String usuario,@FormParam("password")String password){
+        String mensaje="{\"exitoso\":false,\"motivo\":";
+        Usuario u=BuscarPorId(idUsuario);
+        if (u!=null){
+            if (!(password.equals("") || usuario.equals(""))){
+               u.setUsuario(usuario);
+               u.setPassword(password);
+                try{
+                    edit(u);
+                    mensaje="{\"exitoso\":true";
+                }catch(Exception e){
+                    mensaje+="\"Excepcion en base\"";
+                } 
+            }else{
+                mensaje+="\"No se ingreso usuario o contraseña valida\"";
+            }
+              
+        }else{
+            mensaje+="\"Datos no correctos\"";
+        }
+        
+        mensaje+="}";
+        return mensaje;
+    }
+    
+    @POST
+    @Path("eliminar")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON})
+    public String eliminar(@FormParam ("idUsuario")int idUsuario){
+        String mensaje="{\"exitoso\":false,\"motivo\":";
+        Usuario u=BuscarPorId(idUsuario);
+        if (u!=null){
+            u.setEliminado(true);
+            edit(u);
+            mensaje="{\"exitoso\":true";
+        }else{
+            mensaje+="\"Datos no correctos\"";
+        }
+        
+        mensaje+="}";
+        return mensaje;
+    }
+    
+    @POST
+    @Path("activar")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON})
+    public String activar(@FormParam ("idUsuario")int idUsuario){
+        String mensaje="{\"exitoso\":false,\"motivo\":";
+        Usuario u=Activar(idUsuario);
+        if (u!=null){
+            u.setEliminado(false);
+            edit(u);
+            mensaje="{\"exitoso\":true";
+        }else{
+            mensaje+="\"Datos no correctos\"";
+        }
+        
+        mensaje+="}";
+        return mensaje;
+    }
+    
     @Override
     protected EntityManager getEntityManager() {
         return em;
@@ -148,5 +211,27 @@ public class UsuarioFacadeREST extends AbstractFacade<Usuario> {
         }
     }
     
+    public Usuario BuscarPorId(int idUsuario){
+        TypedQuery<Usuario>qry;
+        qry=getEntityManager().createQuery("SELECT u FROM Usuario u WHERE u.idusuario = :idusuario and u.eliminado = :eliminado", Usuario.class);
+        qry.setParameter("idusuario", idUsuario);
+        qry.setParameter("eliminado", false);
+        try {
+            return qry.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
     
+    public Usuario Activar(int idUsuario){
+        TypedQuery<Usuario>qry;
+        qry=getEntityManager().createQuery("SELECT u FROM Usuario u WHERE u.idusuario = :idusuario and u.eliminado = :eliminado", Usuario.class);
+        qry.setParameter("idusuario", idUsuario);
+        qry.setParameter("eliminado", true);
+        try {
+            return qry.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
+    }
 }
