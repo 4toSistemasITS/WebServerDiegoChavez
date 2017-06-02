@@ -6,7 +6,6 @@
 package com.model;
 
 import java.io.Serializable;
-import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -15,11 +14,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 /**
  *
@@ -31,7 +28,8 @@ import javax.xml.bind.annotation.XmlTransient;
 @NamedQueries({
     @NamedQuery(name = "Empresa.findAll", query = "SELECT e FROM Empresa e")
     , @NamedQuery(name = "Empresa.findByIdempresa", query = "SELECT e FROM Empresa e WHERE e.idempresa = :idempresa")
-    , @NamedQuery(name = "Empresa.findByNombreEmpresa", query = "SELECT e FROM Empresa e WHERE e.nombreEmpresa = :nombreEmpresa")})
+    , @NamedQuery(name = "Empresa.findByNombreEmpresa", query = "SELECT e FROM Empresa e WHERE e.nombreEmpresa = :nombreEmpresa")
+    , @NamedQuery(name = "Empresa.findByEliminado", query = "SELECT e FROM Empresa e WHERE e.eliminado = :eliminado")})
 public class Empresa implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -43,14 +41,19 @@ public class Empresa implements Serializable {
     @Size(max = 45)
     @Column(name = "nombre_empresa")
     private String nombreEmpresa;
-    @OneToMany(mappedBy = "idempresa")
-    private List<Empleado> empleadoList;
+    @Column(name = "eliminado")
+    private Boolean eliminado;
 
     public Empresa() {
     }
+
+    public Empresa(String nombreEmpresa, Boolean eliminado) {
+        this.nombreEmpresa = nombreEmpresa;
+        this.eliminado = eliminado;
+    }
     
     
-    
+
     public Empresa(Integer idempresa) {
         this.idempresa = idempresa;
     }
@@ -71,13 +74,12 @@ public class Empresa implements Serializable {
         this.nombreEmpresa = nombreEmpresa;
     }
 
-    @XmlTransient
-    public List<Empleado> getEmpleadoList() {
-        return empleadoList;
+    public Boolean getEliminado() {
+        return eliminado;
     }
 
-    public void setEmpleadoList(List<Empleado> empleadoList) {
-        this.empleadoList = empleadoList;
+    public void setEliminado(Boolean eliminado) {
+        this.eliminado = eliminado;
     }
 
     @Override

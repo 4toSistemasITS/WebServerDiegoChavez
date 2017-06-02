@@ -9,9 +9,12 @@ import com.model.Empresa;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -83,11 +86,116 @@ public class EmpresaFacadeREST extends AbstractFacade<Empresa> {
         return String.valueOf(super.count());
     }
     
+    @POST
+    @Path("Crear")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON})
+    public String crear(@FormParam("nombreEmpresa")String nombre_empresa){
+        String mensaje="{\"exitoso\":false}";
+        try{
+            if (crear1(nombre_empresa)==null){
+                create(new Empresa(nombre_empresa, false));
+                mensaje="{\"exitoso\":true}";
+            } 
+        }catch(Exception ex){      
+        }
+        return mensaje;
+    }
     
+    @POST
+    @Path("consultarIdempresa")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON})
+    public List<Empresa> consultarValidos(@FormParam("idempresa") int idempresa) {
+        List<Empresa> retorno=obtenerPorIdempresa(idempresa);
+        return retorno;
+    }
+    
+    @POST
+    @Path("editar")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON})
+    public String editar(@FormParam ("idempresa")int idempresa,@FormParam("nombre_empresa")String nombre_empresa){
+        String mensaje="{\"exitoso\":false,\"motivo\":";
+        Empresa e=BuscarPorId(idempresa);
+        
+        if (e!=null){
+            if (!(nombre_empresa.equals("") )){
+               e.setNombreEmpresa(nombre_empresa);
+               
+                try{
+                    edit(e);
+                    mensaje="{\"exitoso\":true";
+                }catch(Exception ex){
+                    mensaje+="\"Excepcion en base\"";
+                } 
+            }else{
+                mensaje+="\"No se ingreso datos validos\"";
+            }
+              
+        }else{
+            mensaje+="\"Datos no correctos\"";
+        }
+        
+        mensaje+="}";
+        return mensaje;
+    }
+    
+    @POST
+    @Path("eliminar")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON})
+    public String eliminar(@FormParam ("idempresa")int idempresa){
+        String mensaje="{\"exitoso\":false,\"motivo\":";
+        Empresa e=BuscarPorId(idempresa);
+        if (e!=null){
+            e.setEliminado(true);
+            edit(e);
+            mensaje="{\"exitoso\":true";
+        }else{
+            mensaje+="\"Datos no correctos\"";
+        }
+        
+        mensaje+="}";
+        return mensaje;
+    }
+
 
     @Override
     protected EntityManager getEntityManager() {
         return em;
     }
     
+    public Empresa crear1(String nombreEmpresa){
+        Empresa e= null;
+        TypedQuery<Empresa>qry;
+        qry=getEntityManager().createQuery("SELECT e FROM Empresa e WHERE e.nombreEmpresa = :nombreEmpresa", Empresa.class);
+        qry.setParameter("nombreEmpresa", nombreEmpresa);
+        try {
+            
+            return qry.getSingleResult();
+        } catch (NoResultException ex) {
+            return null;
+        }
+    }
+    
+    List<Empresa>obtenerPorIdempresa(int idempresa){
+        TypedQuery<Empresa> qry;
+        qry=getEntityManager().createQuery("SELECT e FROM Empresa e WHERE e.idempresa = :idempresa", Empresa.class);
+        qry.setParameter("idempresa", idempresa);
+        try{
+            return qry.getResultList();
+        }catch(NoResultException e){
+            return null;
+        }
+        
+    }
+    
+    public Empresa BuscarPorId(int idempresa){
+        TypedQuery<Empresa>qry;
+        qry=getEntityManager().createQuery("SELECT e FROM Empresa e WHERE e.idempresa = :idempresa and e.eliminado = :eliminado", Empresa.class);
+        qry.setParameter("idempresa", idempresa);
+        qry.setParameter("eliminado", false);
+        try {
+            return qry.getSingleResult();
+        } catch (NoResultException ex) {
+            return null;
+        }
+    }
 }
