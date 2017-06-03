@@ -114,6 +114,53 @@ public class MateriaFacadeREST extends AbstractFacade<Materia> {
         List<Materia> retorno=obtenerPorIdarea(idarea);
         return retorno;
     }
+    
+    @POST
+    @Path("editar")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON})
+    public String editar(@FormParam ("idmateria")int idestudiante,@FormParam("nombre_materia")String nombre_materia,@FormParam("idarea")int idarea){
+        String mensaje="{\"exitoso\":false,\"motivo\":";
+        Materia ma=BuscarPorId(idestudiante);
+        Area a=areaFacadeREST.find(idarea);
+        if (ma!=null){
+            if (!(nombre_materia.equals("") ||idarea==0)){
+               ma.setNombreMateria(nombre_materia);
+               ma.setIdarea(a);
+                try{
+                    edit(ma);
+                    mensaje="{\"exitoso\":true";
+                }catch(Exception ex){
+                    mensaje+="\"Excepcion en base\"";
+                } 
+            }else{
+                mensaje+="\"No se ingreso datos validos\"";
+            }
+              
+        }else{
+            mensaje+="\"Datos no correctos\"";
+        }
+        
+        mensaje+="}";
+        return mensaje;
+    }
+    
+    @POST
+    @Path("eliminar")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON})
+    public String eliminar(@FormParam ("idmateria")int idmateria){
+        String mensaje="{\"exitoso\":false,\"motivo\":";
+        Materia ma=BuscarPorId(idmateria);
+        if (ma!=null){
+            ma.setEliminado(true);
+            edit(ma);
+            mensaje="{\"exitoso\":true";
+        }else{
+            mensaje+="\"Datos no correctos\"";
+        }
+        
+        mensaje+="}";
+        return mensaje;
+    }
 
     @Override
     protected EntityManager getEntityManager() {
@@ -145,6 +192,18 @@ public class MateriaFacadeREST extends AbstractFacade<Materia> {
             return null;
         }
         
+    }
+    
+    public Materia BuscarPorId(int idmateria){
+        TypedQuery<Materia>qry;
+        qry=getEntityManager().createQuery("SELECT m FROM Materia m WHERE m.idmateria = :idmateria and m.eliminado = :eliminado", Materia.class);
+        qry.setParameter("idmateria", idmateria);
+        qry.setParameter("eliminado", false);
+        try {
+            return qry.getSingleResult();
+        } catch (NoResultException ex) {
+            return null;
+        }
     }
     
 }
